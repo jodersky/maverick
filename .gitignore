@@ -1,0 +1,7 @@
+# ide
+*.sublime-project
+*.sublime-workspace
+
+# general files
+*.o
+*~
