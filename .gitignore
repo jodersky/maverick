@@ -3,5 +3,7 @@
 *.sublime-workspace
 
 # general files
+controller
+controller-static
 *.o
 *~
