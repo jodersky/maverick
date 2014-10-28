@@ -1,28 +1,56 @@
 #include <stdio.h>
 #include <SDL.h>
+#include "mavlink/common/mavlink.h"
 #include "controller.h"
 
-static int run(int joystick_id, int timeout, bool debug);
-static void print_channels(channel_t* channels, bool debug);
+struct conf {
 
-int main(int argc, char *argv[]) { 
+    //the joystick id to use by sdl
+    int joystick_id;
 
-    //initialize joystick library
+    //maximum delay before the controller's state is printed
+    int timeout;
+
+    //mav system id of local device
+    int mav_local_system;
+
+    //mav component id of local device
+    int mav_local_component;
+
+    //mav system id of target device
+    int mav_target_system;
+
+};
+
+static int run(const struct conf* conf);
+static void mav_out(uint8_t system_id, uint8_t component_id, uint8_t rsystem_id, channel_t* channels);
+
+
+int main(int argc, char *argv[]) {
+    
+    //initialize joystick libraryz
     if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) < 0) {
         fprintf(stderr, "Couldn't initialize SDL joystick subsystem: %s\n", SDL_GetError());
         exit(1);
     }
 
-    run(0, 500, true);
+    struct conf conf = {
+        .joystick_id = 0,
+        .timeout = 500,
+        .mav_local_system = 42,
+        .mav_local_component = 22,
+        .mav_target_system = 0
+    };
 
-   
-    return 0;
+    return run(&conf);
 }
 
-static int run(int joystick_id, int timeout, bool debug) {
+static int run(const struct conf* conf) {
 
     channel_t channels[CHANNELS];
     channel_reset(channels);
+
+    int joystick_id = conf->joystick_id;
 
     //pointer to joystick in use
     SDL_Joystick* joystick = NULL;
@@ -32,7 +60,7 @@ static int run(int joystick_id, int timeout, bool debug) {
     bool cont = true;
     while (cont) {
 
-        if(SDL_WaitEventTimeout(&e, timeout)) {
+        if(SDL_WaitEventTimeout(&e, conf->timeout)) {
             switch( e.type ) {
 
             case SDL_JOYDEVICEADDED:
@@ -82,16 +110,54 @@ static int run(int joystick_id, int timeout, bool debug) {
             }
             
         }
-        print_channels(channels, debug);
+        mav_out(
+            conf->mav_local_system,
+            conf->mav_local_component,
+            conf->mav_target_system,
+            channels
+        );
     }
     return 0;
 }
 
-void print_channels(channel_t* channels, bool debug) {
-    for(size_t i=0; i < CHANNELS; ++i) {
-        fprintf(stdout, "%u\n", channels[i]);
-        fprintf(stderr, "channel %zu: %u\n", i, channels[i]);
-    }
+static void mav_out(uint8_t system_id, uint8_t component_id, uint8_t rsystem_id, channel_t* channels) {
+
+    mavlink_message_t msg;
+    uint8_t buf[MAVLINK_MAX_PACKET_LEN];
+
+    mavlink_msg_rc_channels_override_pack(
+        system_id, component_id,
+        &msg,
+        rsystem_id,
+        MAV_COMP_ID_ALL,
+        channels[0],
+        channels[1],
+        channels[2],
+        channels[3],
+        channels[4],
+        channels[5],
+        channels[6],
+        channels[7]
+    );
+ 
+    uint16_t len = mavlink_msg_to_send_buffer(buf, &msg);
+    fwrite(buf, len, 1, stdout);
     fflush(stdout);
-    fflush(stderr);
+
+    fprintf(stderr, "local system id: \t%u\n", system_id);
+    fprintf(stderr, "local component id: \t%u\n", component_id);
+    fprintf(stderr, "remote system id: \t%u\n", rsystem_id);
+    fprintf(stderr, "remote component id: \t%u\n", MAV_COMP_ID_ALL);
+    for (size_t i = 0; i < CHANNELS; ++i) {
+        fprintf(stderr, "channel %zu: \t\t%u\n", i, channels[i]);
+    }
+    fprintf(stderr, "\n");
+
+
+    /*
+    mavlink_msg_rc_channels_override_pack(ALL)
+    fprintf(stdout, "%u\n", channels[0]);
+    fprintf(stderr, "channel 0: %u\n", channels[0]);
+    fflush(stdout);
+    fflush(stderr);*/
 }

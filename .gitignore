@@ -3,7 +3,7 @@
 *.sublime-workspace
 
 # general files
-controller
-controller-static
+maverick
+maverick-static
 *.o
 *~
