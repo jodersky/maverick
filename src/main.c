@@ -28,7 +28,7 @@ static void mav_out(uint8_t system_id, uint8_t component_id, uint8_t rsystem_id,
 
 int main(int argc, char *argv[]) {
     
-    //initialize joystick libraryz
+    //initialize joystick library
     if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) < 0) {
         fprintf(stderr, "Couldn't initialize SDL joystick subsystem: %s\n", SDL_GetError());
         exit(1);
@@ -126,7 +126,8 @@ static void mav_out(uint8_t system_id, uint8_t component_id, uint8_t rsystem_id,
     uint8_t buf[MAVLINK_MAX_PACKET_LEN];
 
     mavlink_msg_rc_channels_override_pack(
-        system_id, component_id,
+        system_id,
+        component_id,
         &msg,
         rsystem_id,
         MAV_COMP_ID_ALL,
@@ -152,12 +153,4 @@ static void mav_out(uint8_t system_id, uint8_t component_id, uint8_t rsystem_id,
         fprintf(stderr, "channel %zu: \t\t%u\n", i, channels[i]);
     }
     fprintf(stderr, "\n");
-
-
-    /*
-    mavlink_msg_rc_channels_override_pack(ALL)
-    fprintf(stdout, "%u\n", channels[0]);
-    fprintf(stderr, "channel 0: %u\n", channels[0]);
-    fflush(stdout);
-    fflush(stderr);*/
 }

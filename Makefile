@@ -8,7 +8,7 @@ LDFLAGS=-O2
 
 SOURCEDIRS=src
 INCLUDEDIRS=\
- include\
+ src/include\
  ext/mavlink/include
 
 SOURCES=$(foreach dir,$(SOURCEDIRS),$(wildcard $(dir)/*.c))
