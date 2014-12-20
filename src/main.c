@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <unistd.h>
 #include <SDL.h>
 #include "mavlink/common/mavlink.h"
 #include "controller.h"
@@ -144,6 +145,7 @@ static void mav_out(uint8_t system_id, uint8_t component_id, uint8_t rsystem_id,
     uint16_t len = mavlink_msg_to_send_buffer(buf, &msg);
     fwrite(buf, len, 1, stdout);
     fflush(stdout);
+    fsync(fileno(stdout));
 
     fprintf(stderr, "local system id: \t%u\n", system_id);
     fprintf(stderr, "local component id: \t%u\n", component_id);
