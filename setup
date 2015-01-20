@@ -1,0 +1,10 @@
+c#!/bin/sh
+set -e
+
+DEV=/dev/ttyUSB0
+BAUD=115200
+
+stty -F "$DEV" -crtscts
+stty -F "$DEV" speed "$BAUD"
+
+./maverick > "$DEV"
