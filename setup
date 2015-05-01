@@ -1,4 +1,4 @@
-c#!/bin/sh
+#!/bin/sh
 set -e
 
 DEV=/dev/ttyUSB0
