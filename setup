@@ -4,7 +4,12 @@ set -e
 DEV=/dev/ttyUSB0
 BAUD=115200
 
+REMOTE_SYSTEM=100
+
+LOCAL_SYSTEM=42
+LOCAL_COMPONENT=22
+
 stty -F "$DEV" -crtscts
 stty -F "$DEV" speed "$BAUD"
 
-./maverick > "$DEV"
+./maverick -L "$LOCAL_SYSTEM" -l "$LOCAL_COMPONENT" -R "$REMOTE_SYSTEM" > "$DEV"
