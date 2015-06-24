@@ -6,9 +6,10 @@ CFLAGS=-std=gnu99 -Wall -O2
 LD=gcc
 LDFLAGS=-O2
 
-SOURCEDIRS=src
+SOURCEDIRS=src src/controllers
 INCLUDEDIRS=\
- src/include\
+ src \
+ src/controllers \
  ext/mavlink/include
 
 SOURCES=$(foreach dir,$(SOURCEDIRS),$(wildcard $(dir)/*.c))
