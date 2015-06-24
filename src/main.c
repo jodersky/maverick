@@ -159,6 +159,40 @@ static void print_mav(uint8_t system_id, uint8_t component_id, uint8_t rsystem_i
 }
 
 
+static void print_usage(char const* progname, struct conf* defconf)
+{
+	printf("%s [options]\n", progname);
+	printf("\t%s\t%s\t[%d]\n", "-L <id>", "local mavlink system id",
+	       defconf->mav_local_system);
+	printf("\t%s\t%s\t[%d]\n", "-l <id>", "local mavlink component id",
+	       defconf->mav_local_component);
+	printf("\t%s\t%s\t[%d]\n", "-R <id>", "remote mavlink system id",
+	       defconf->mav_target_system);
+	printf("\t%s\t%s\t[%d]\n", "-t <ms>", "retransmission timeout in ms",
+	       defconf->timeout);
+	printf("\t%s\t%s\t[%d]\n", "-j <id>", "SDL joystick id",
+	       defconf->joystick_id);
+	printf("\t-h\tprint help\n");
+}
+
+static int get_int()
+{
+	long number;
+	char* end = NULL;
+	if (optarg != NULL) {
+		number = strtol(optarg, &end, 0);
+		if (*end != '\0') {
+			fprintf(stderr, "invalid option, expecting a number\n");
+			exit(-1);
+		} else {
+			return number;
+		}
+	} else {
+		fprintf(stderr, "option requires argument");
+		exit(-1);
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	struct conf conf = {
@@ -166,10 +200,39 @@ int main(int argc, char *argv[])
 		.timeout = 500,
 		.mav_local_system = 42,
 		.mav_local_component = 22,
-		.mav_target_system = 0,
+		.mav_target_system = 100,
 		.controller = &controller_generic
 	};
 
+	//TODO: use strtol for safer string-to-int conversions
+	char opt;
+	while ((opt = getopt (argc, argv, "L:l:R:t:j:h")) != -1) {
+		switch (opt) {
+		case 'h':
+			print_usage(argv[0], &conf);
+			return -1;
+		case 'L':
+			conf.mav_local_system = get_int();
+			break;
+		case 'l':
+			conf.mav_local_component = get_int();
+			break;
+		case 'R':
+			conf.mav_target_system = get_int();
+			break;
+		case 't':
+			conf.timeout = get_int();
+			break;
+		case 'j':
+			conf.joystick_id = get_int();
+			break;
+		case '?':
+			print_usage(argv[0], &conf);
+			return -1;
+		default:
+			return -1;
+		}
+	}
 
 	return run(&conf);
 }
